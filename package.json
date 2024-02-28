@@ -10,10 +10,26 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@chakra-ui/icons": "^2.1.1",
     "@chakra-ui/react": "^2.8.2",
+    "@hookform/resolvers": "^3.3.4",
+    "@reduxjs/toolkit": "^2.2.1",
     "@tanstack/react-query": "^5.24.1",
+    "axios": "^1.6.7",
+    "chakra-dayzed-datepicker": "^0.2.10",
+    "date-fns": "^3.3.1",
+    "dayzed": "^3.2.3",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "react-hook-form": "^7.50.1",
+    "react-icons": "^5.0.1",
+    "react-router-dom": "^6.22.1",
+    "redux": "^5.0.1",
+    "redux-logger": "^3.0.6",
+    "redux-thunk": "^3.1.0",
+    "sweetalert2": "^11.10.5",
+    "sweetalert2-react-content": "^5.0.7",
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@types/react": "^18.2.56",
