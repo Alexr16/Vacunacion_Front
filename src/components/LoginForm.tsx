@@ -4,10 +4,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   FormControl,
   FormLabel,
-  FormErrorMessage,
   Button,
   Input,
-  FormHelperText,
   Heading,
   Alert,
   AlertIcon,
@@ -37,28 +35,32 @@ const LoginForm = () => {
   });
 
   const navigate = useNavigate();
-  //const { login } = useAuthService();
-  //const onSubmit = async (data: Data) => {
-  //try {
-  //const user = await login(data.username, data.password);
-  //if (user.role === "Admin") {
-  // navigate("/admin");
-  // } else {
-  // navigate("/employee");
-  //}
-  // } catch (error) {
-  // messageService.error("error");
-  // }
-  //};
+  const { login } = useAuthService();
+  const onSubmit = async (data: ExpenseFormData) => {
+    try {
+      const user = await login(data);
+
+      localStorage.setItem("user", JSON.stringify(user));
+
+      if (data !== null && user.role === "admin") {
+        navigate("/admin");
+      } else if (data !== null && user.role === "employee") {
+        navigate("/employee");
+      } else {
+        nmessageService.error("Usuario o contraseña incorrectos");
+      }
+    } catch (error) {
+      messageService.error("Usuario o contraseña incorrectos");
+    }
+  };
 
   return (
     <>
       <form
         className="login-form"
         onSubmit={handleSubmit((data: ExpenseFormData) => {
-          console.log(data);
+          onSubmit(data);
           reset();
-          navigate("/admin");
         })}
       >
         <FormContainer>

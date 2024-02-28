@@ -1,38 +1,39 @@
-import useAxiosInstance from '../hooks/useAxiosInstance';
+import apiClient from './api-client';
 
 export interface User {
     id: string;
     username: string;
-    email: string;
-    role: string;
-    cedula: string
-    names: string;
-    lastnames: string;
-    vaccineDate: string;
-    vaccineType: string;
-    password: string;
-    isVaccinated: boolean;
-    doseNumber: string;
+    email: string ;
+    role: string ;
+    cedula: string ;
+    nombres: string ;
+    lastnames: string ;
+    vaccineDate: Date ;
+    vaccineType: string ;
+    password: string ;
+    isVaccinated: boolean ;
+    doseNumber: string ;
+    birthdate: string ;
+    phone: string ;
+    address: string ;
 
+}
+
+type LoginData = {
+    username: string;
+    password: string;
 }
 
 const useAuthService = () => {
 
-    const { instance } = useAxiosInstance();
+    const resourceUrl = 'usuario';
 
-    const resourceUrl = '/auth';
-
-    const login = async (username: string, password: string) => {
-        const payload = {
-            username,
-            password
-        }
+    const login = async (data: LoginData) => {
 
         try {
-            const response = await instance.post(`${resourceUrl}/login`, payload);
-            setToken(response.data.token);
-            setUser(response.data.data);
-            return response.data.data;
+            const response = await apiClient.post(`${resourceUrl}/login`, data);
+            
+            return response.data;
         } catch (error) {
             logout();
             throw error;
@@ -80,3 +81,4 @@ const useAuthService = () => {
 }
 
 export default useAuthService;
+

@@ -11,12 +11,15 @@ import {
   Input,
   Table,
   TableContainer,
+  GridItem,
   Grid,
   IconButton,
   Td,
   Th,
   Thead,
   Tbody,
+  VStack,
+  Heading,
   Tr,
 } from "@chakra-ui/react";
 import { SingleDatepicker } from "chakra-dayzed-datepicker";
@@ -32,13 +35,13 @@ interface Config {
 }
 
 const SelectFilter = (config: Config) => {
-  //const { getUsers } = useUserService();
+  const { getUsers } = useUserService();
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     config.setValue(event.target.value);
-    //getUsers(event.target.value).then((data) => {
-    //config.setUsers(data);
-    //});
+    getUsers(event.target.value).then((data) => {
+      config.setUsers(data);
+    });
   };
 
   return (
@@ -66,7 +69,7 @@ const SelectFilter = (config: Config) => {
 };
 
 export const EmployeeListView = () => {
-  //const { getUsers, deleteUser } = useUserService();
+  const { getUsers, deleteUser, getAllUsers } = useUserService();
   const [users, setUsers] = useState<User[]>();
   const [loading, setLoading] = useState(false);
   const [selectedRow, setSelectedRow] = useState();
@@ -77,23 +80,25 @@ export const EmployeeListView = () => {
   const [state, setState] = useState("");
   const [type, setType] = useState("");
 
-  //useEffect(() => {
-  //loadUsers();
-  //}, []);
+  useEffect(() => {
+    async function fetchData() {
+      setUsers(await getAllUsers());
+    }
+    fetchData();
+  }, []);
 
   const editRow = (row) => {
     setOpen(true);
   };
 
   const deleteRow = (row: User) => {
-    // deleteUser(row.id)
-    // .then((user) => {
-    // setUsers(users.filter((u) => u.id !== user.id));
-    // })
-    //.catch((e) => {
-    // messageService.error(e);
-    //});
-    console.log(row);
+    deleteUser(row.id)
+      .then((user) => {
+        setUsers(users?.filter((u) => u.id !== row.id));
+      })
+      .catch((e) => {
+        messageService.error(e);
+      });
   };
 
   const selectRow = (row) => {
@@ -101,140 +106,150 @@ export const EmployeeListView = () => {
   };
 
   const loadUsers = (search = "", startedDate = "", endedDate = "") => {
-    //setLoading(true);
-    //getUsers(search, startedDate, endedDate)
-    //.then((data) => {
-    //setUsers(data);
-    //setLoading(false);
-    //  })
-    // .catch((error) => {
-    //   setLoading(false);
-    // });
+    setLoading(true);
+    getUsers(search, startedDate, endedDate)
+      .then((data) => {
+        setUsers(data);
+        setLoading(false);
+      })
+      .catch((error) => {
+        setLoading(false);
+      });
     console.log(search);
   };
 
   if (loading) return <div>Cargando...</div>;
 
   return (
-    <TableContainer>
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "end",
-          gap: 1,
-        }}
-      >
-        <Grid justifyContent="space-between" alignItems="center" padding={20}>
-          <SingleDatepicker
-            name="Fecha inicial Vacunación"
-            date={startedDate}
-            onDateChange={(newValue) => {
-              setStartedDate(newValue);
-              // getUsers(
-              //  "",
-              //  newValue.toLocaleDateString(),
-              //  endedDate.toLocaleDateString()
-              // )
-              //   .then((data) => {
-              //     setUsers(data);
-              //   })
-              //   .catch((error) => {
-              //     console.log(error);
-              //   });
-            }}
+    <>
+      <VStack justifyContent={"center"} marginBottom="30px" spacing="24px">
+        <Heading as="h1" size="xl">
+          Sistema de Administradores
+        </Heading>
+        <Heading fontSize="4xl">LISTA DE EMPLEADOS</Heading>
+      </VStack>
+      <TableContainer>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "end",
+            gap: 1,
+          }}
+        >
+          <EmployeeForm
+            open={open}
+            setOpen={setOpen}
+            setUsers={setUsers}
+            users={users}
+            setSelectedRow={setSelectedRow}
+            employee={selectedRow}
           />
-          <SingleDatepicker
-            name="Fecha final Vacunación"
-            date={endedDate}
-            onDateChange={(newValue) => {
-              setEndedDate(newValue);
-              getUsers(
-                "",
-                startedDate.toLocaleDateString(),
-                newValue.toLocaleDateString()
-              )
-                .then((data) => {
-                  setUsers(data);
-                })
-                .catch((error) => {
-                  console.log(error);
-                });
-            }}
-          />
-          <SelectFilter
-            config={{
-              data: ["Vacunado", "No vacunado"],
-              label: "Estado de vacunación",
-              value: state,
-              setValue: setState,
-              users: users,
-              setUsers: setUsers,
-            }}
-          />
-          <SelectFilter
-            config={{
-              data: ["", "Sputnik", "AstraZeneca", "Pfizer", "Jhonson&Jhonson"],
-              label: "Tipo Vacuna",
-              value: type,
-              setValue: setType,
-              users: users,
-              setUsers: setUsers,
-            }}
-          />
-        </Grid>
-      </Box>
-      <Box
-        borderWidth="2px"
-        overflow="hidden"
-        borderColor={"teal"}
-        padding={10}
-      >
-        <Table aria-label="simple table" size="sm">
-          <Thead>
-            <Tr>
-              <Th align="right">Cédula</Th>
-              <Th align="right">Nombres</Th>
-              <Th align="right">Apellidos</Th>
-              <Th align="right">Correo</Th>
-              <Th align="right">Fecha de Vacunación</Th>
-              <Th align="right">Tipo de Vacuna</Th>
-              <Th align="right">Acciones</Th>
-            </Tr>
-          </Thead>
-          <Tbody>
-            {users.map((row: User) => (
-              <Tr
-                key={row.id}
-                sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-                onClick={() => selectRow(row)}
-              >
-                <Td align="right">{row.cedula}</Td>
-                <Td align="right">{row.names}</Td>
-                <Td align="right">{row.lastnames}</Td>
-                <Td align="right">{row.email}</Td>
-                <Td align="right">
-                  {row.vaccineDate ? row.vaccineDate : "No Aplica"}
-                </Td>
-                <Td align="right">
-                  {row.vaccineType ? row.vaccineType : "No Aplica"}
-                </Td>
-                <Td align="right">
-                  <IconButton
-                    aria-label="Ledit"
-                    icon={<EditIcon />}
-                    onClick={() => editRow(row)}
-                  />
-                  <IconButton
-                    aria-label="delete"
-                    icon={<SmallCloseIcon />}
-                    onClick={() => deleteRow(row)}
-                  />
-                </Td>
+          <Grid
+            templateColumns="repeat(3, 1fr)"
+            gap={6}
+            justifyContent="space-between"
+            alignItems="center"
+            padding={20}
+          >
+            <GridItem ms={6}></GridItem>
+
+            <GridItem ms={6}>
+              <SingleDatepicker
+                name="Fecha inicial Vacunación"
+                date={startedDate}
+                onDateChange={(newValue) => {
+                  setStartedDate(newValue);
+                  getUsers(
+                    "",
+                    newValue.toLocaleDateString(),
+                    endedDate.toLocaleDateString()
+                  )
+                    .then((data) => {
+                      setUsers(data);
+                    })
+                    .catch((error) => {
+                      console.log(error);
+                    });
+                }}
+              />
+            </GridItem>
+
+            <GridItem ms={6}>
+              <SingleDatepicker
+                name="Fecha final Vacunación"
+                date={endedDate}
+                onDateChange={(newValue) => {
+                  setEndedDate(newValue);
+                  getUsers(
+                    "",
+                    startedDate.toLocaleDateString(),
+                    newValue.toLocaleDateString()
+                  )
+                    .then((data) => {
+                      setUsers(data);
+                    })
+                    .catch((error) => {
+                      console.log(error);
+                    });
+                }}
+              />
+            </GridItem>
+          </Grid>
+        </Box>
+        <Box
+          borderWidth="2px"
+          overflow="hidden"
+          borderColor={"teal"}
+          padding={10}
+        >
+          <Table aria-label="simple table" size="sm">
+            <Thead>
+              <Tr>
+                <Th align="right">Cédula</Th>
+                <Th align="right">Nombres</Th>
+                <Th align="right">Apellidos</Th>
+                <Th align="right">Correo</Th>
+                <Th align="right">Fecha de Vacunación</Th>
+                <Th align="right">Tipo de Vacuna</Th>
+                <Th align="right">Acciones</Th>
               </Tr>
-            ))}
-          </Tbody>
-        </Table>
-      </Box>
-    </TableContainer>
+            </Thead>
+            <Tbody>
+              {users?.map((row: User) => (
+                <Tr
+                  key={row.id}
+                  sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+                  onClick={() => selectRow(row)}
+                >
+                  <Td align="right">{row.cedula}</Td>
+                  <Td align="right">{row.nombres}</Td>
+                  <Td align="right">{row.lastnames}</Td>
+                  <Td align="right">{row.email}</Td>
+                  <Td align="right">
+                    {row.vaccineDate ? row.vaccineDate : "No Aplica"}
+                  </Td>
+                  <Td align="right">
+                    {row.vaccineType ? row.vaccineType : "No Aplica"}
+                  </Td>
+                  <Td align="right">
+                    <IconButton
+                      aria-label="Ledit"
+                      icon={<EditIcon />}
+                      onClick={() => editRow(row)}
+                      marginRight={1}
+                    />
+                    <IconButton
+                      aria-label="delete"
+                      icon={<SmallCloseIcon />}
+                      onClick={() => deleteRow(row)}
+                    />
+                  </Td>
+                </Tr>
+              ))}
+            </Tbody>
+          </Table>
+        </Box>
+      </TableContainer>
+    </>
   );
 };

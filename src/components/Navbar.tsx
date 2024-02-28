@@ -16,6 +16,7 @@ const Navbar = ({ userRole, isMobile }: Props) => {
   const onLogout = () => {
     console.log("logout");
     navigate("/");
+    localStorage.removeItem("user");
   };
 
   return (
@@ -50,19 +51,7 @@ const Navbar = ({ userRole, isMobile }: Props) => {
           <List>
             {userRole === "Admin" && (
               <>
-                <ListItem key={1} paddingY="5px">
-                  <HStack>
-                    <IconButton aria-label="Admin Page" icon={<SearchIcon />} />
-                    <Button
-                      whiteSpace="normal"
-                      textAlign="left"
-                      fontSize="lg"
-                      variant="link"
-                    >
-                      Admin Page
-                    </Button>
-                  </HStack>
-                </ListItem>
+                <ListItem key={1} paddingY="5px"></ListItem>
               </>
             )}
             <ListItem key={2} paddingY="5px">

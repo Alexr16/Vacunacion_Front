@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import useUserService from "../../hooks/useUserService";
 import { messageService } from "../../services/messageService";
-import useAuthService from "../../services/useAuthService";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -22,78 +21,67 @@ import {
   GridItem,
   Select,
 } from "@chakra-ui/react";
-import FormContainer from "./FormContainer";
-import { AddIcon } from "@chakra-ui/icons";
 import { SingleDatepicker } from "chakra-dayzed-datepicker";
+import { User } from "../../services/useAuthService";
 
 const schema = z.object({
-  id: z.string(),
-  isVaccinated: z.boolean(),
-  vaccineType: z.string(),
-  vaccineDate: z.date(),
-  doseNumber: z.string(),
+  id: z.string().optional(),
+  isVaccinated: z.boolean().optional(),
+  vaccineType: z.string().optional(),
+  vaccineDate: z.date().optional(),
+  doseNumber: z.string().optional(),
 });
 
-type ExpenseFormData = z.infer<typeof schema>;
+type FormData = z.infer<typeof schema>;
 
 export const VaccineView = () => {
   const {
     register,
     handleSubmit,
-    reset,
     setValue,
     formState: { errors },
-  } = useForm<ExpenseFormData>({
+  } = useForm<FormData>({
     resolver: zodResolver(schema),
-    defaultValues: {
-      id: " ",
-      isVaccinated: false,
-      vaccineType: " ",
-      vaccineDate: new Date(), // Update the value to be of type Date
-      doseNumber: "0",
-    },
   });
 
   const [type, setType] = useState("");
-  const [date, setDate] = useState(new Date());
+  const [date, setDate] = useState<Date>();
   const [state, setState] = useState(false);
 
-  //  const { getUser, editUser } = useUserService();
+  const { getUser, editUser } = useUserService();
 
-  //const { getUser: loggedUser } = useAuthService();
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      const userObj = JSON.parse(storedUser);
+      for (const key in userObj) {
+        const value = [key as keyof FormData];
+        if (value !== null) {
+          setValue(key as keyof FormData, userObj[key]);
+        }
+      }
+    }
+  }, []);
 
-  //useEffect(() => {
-  //  getUser(loggedUser().id)
-  //    .then((user) => {
-  //      for (const key in user) {
-  //        setValue(key as keyof ExpenseFormData, user[key]);
-  //     }
-  //     user.vaccineDate && setDate(user.vaccineDate);
-  //     setState(user.isVaccinated);
-  //     user.vaccineType && setType(user.vaccineType);
-  //   })
-  //   .catch((err) => {
-  //     messageService.error(err);
-  //   });
-  //}, []);
-
-  const onSubmit = (data: ExpenseFormData) => {
-    //editUser(data)
-    //  .then((res) => {
-    //   messageService.success("Success", "Información actualizada");
-    //   for (const key in res) {
-    //     setValue(key as keyof ExpenseFormData, res[key]);
-    //   }
-    // })
-    // .catch((error) => {
-    //   messageService.error(error);
-    // });
-    console.log(data);
+  const onSubmit = (data: FormData) => {
+    editUser(data as unknown as User)
+      .then((res) => {
+        messageService.success("Success", "Información actualizada");
+        for (const key in res) {
+          setValue(key as keyof FormData, res[key]);
+        }
+      })
+      .catch((error) => {
+        messageService.error(error);
+      });
   };
 
-  const handleType = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setType(event.target.value);
-    setValue("vaccineType", event.target.value);
+  const onDateChange = (newValue: Date) => {
+    setDate(newValue);
+    setValue("vaccineDate", newValue);
+    if (!register("vaccineDate")) {
+      register("vaccineDate");
+    }
   };
 
   return (
@@ -101,13 +89,7 @@ export const VaccineView = () => {
       <CardHeader>
         <Heading size="md">Vacunación</Heading>
       </CardHeader>
-      <form
-        onSubmit={handleSubmit((data) => {
-          console.log(data);
-          onSubmit(data);
-          reset();
-        })}
-      >
+      <form>
         <Box
           borderRadius={10}
           borderWidth="2px"
@@ -123,7 +105,11 @@ export const VaccineView = () => {
               gap={6}
             >
               <GridItem ms={6}>
-                <FormControl onChange={() => setState(!state)}>
+                <FormControl
+                  onChange={() => {
+                    setState(!state);
+                  }}
+                >
                   <FormLabel>¿Está vacunado?</FormLabel>
                   <Switch checked={state} {...register("isVaccinated")} />
                 </FormControl>
@@ -141,8 +127,13 @@ export const VaccineView = () => {
                     <Select
                       id="type-select"
                       value={type}
-                      onChange={(e) => handleType(e)}
-                      defaultValue={type}
+                      onChange={(
+                        event: React.ChangeEvent<HTMLSelectElement>
+                      ) => {
+                        const selectedValue = event.target.value;
+                        setType(selectedValue);
+                        setValue("vaccineType", selectedValue);
+                      }}
                     >
                       {[
                         "",
@@ -168,10 +159,7 @@ export const VaccineView = () => {
                   <SingleDatepicker
                     name="Fecha de Vacunacion"
                     date={date}
-                    onDateChange={(newValue) => {
-                      setDate(newValue);
-                      setValue("vaccineDate", newValue);
-                    }}
+                    onDateChange={onDateChange}
                   />
                 </GridItem>
                 <GridItem ms={6}>
@@ -200,6 +188,7 @@ export const VaccineView = () => {
               colorScheme="teal"
               whiteSpace="normal"
               textAlign="left"
+              onClick={handleSubmit(onSubmit)}
             >
               Guardar
             </Button>

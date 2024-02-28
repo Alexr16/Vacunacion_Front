@@ -2,7 +2,6 @@ import { useForm } from "react-hook-form";
 import { useEffect, useState } from "react";
 import useUserService from "../../hooks/useUserService";
 import { messageService } from "../../services/messageService";
-import useAuthService from "../../services/useAuthService";
 import { User } from "../../services/useAuthService";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -14,34 +13,37 @@ import {
   AlertTitle,
   Grid,
   Card,
+  VStack,
   CardHeader,
   Box,
   Heading,
   FormLabel,
   GridItem,
 } from "@chakra-ui/react";
-import FormContainer from "./FormContainer";
-import { AddIcon } from "@chakra-ui/icons";
 import { SingleDatepicker } from "chakra-dayzed-datepicker";
 
 const namesRegex = /^[a-zA-Z\s]*$/;
 const numbersRegex = /^[0-9]*$/;
 
 const schema = z.object({
-  id: z.string(),
+  id: z.string().optional(),
   cedula: z
     .string()
     .min(10)
     .max(10)
-    .regex(numbersRegex, "Solo se permiten números"),
-  names: z.string().regex(namesRegex),
-  lastnames: z.string().regex(namesRegex),
-  email: z.string().email({ message: "Este campo no puede estar vacio" }),
-  birthdate: z.date(),
-  address: z.string(),
-  phone: z.string(),
-  password: z.string(),
-  username: z.string().email(),
+    .regex(numbersRegex, "Solo se permiten números")
+    .optional(),
+  nombres: z.string().regex(namesRegex).optional(),
+  lastnames: z.string().regex(namesRegex).optional(),
+  email: z
+    .string()
+    .email({ message: "Este campo no puede estar vacio" })
+    .optional(),
+  birthdate: z.string().optional(),
+  address: z.string().optional(),
+  phone: z.string().optional(),
+  password: z.string().optional(),
+  username: z.string().optional(),
 });
 
 type ExpenseFormData = z.infer<typeof schema>;
@@ -50,68 +52,74 @@ const InfoView = () => {
   const {
     register,
     handleSubmit,
-    reset,
     setValue,
     formState: { errors },
   } = useForm<ExpenseFormData>({
     resolver: zodResolver(schema),
-    defaultValues: {
-      id: "",
-      cedula: "",
-      names: "",
-      lastnames: "",
-      email: "",
-      birthdate: new Date(),
-      address: "",
-      phone: "",
-      username: "",
-    },
   });
-
-  //const { getUser, editUser } = useUserService();
-  //const { getUser: loggedUser } = useAuthService();
+  const formattedDate = (date: Date) => {
+    const options = { year: "numeric", month: "2-digit", day: "2-digit" };
+    return new Date(date).toLocaleDateString(undefined, options);
+  };
+  const { getUser, editUser } = useUserService();
   const [date, setDate] = useState(new Date());
 
-  //useEffect(() => {
-  //  getUser(loggedUser().id)
-  //    .then((res) => {
-  //      for (const key in res) {
-  //        setValue(key as keyof ExpenseFormData, res[key]);
-  //      }
-  //      res.birthdate && setDate(res.birthdate);
-  //    })
-  //    .catch((err) => {
-  //      messageService.error(err);
-  //    });
-  // }, []);
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      const userObj = JSON.parse(storedUser);
+      for (const key in userObj) {
+        const value = userObj[key as keyof ExpenseFormData];
+        if (value !== null) {
+          if (String(key) === "birthdate") {
+            setValue(
+              key as keyof ExpenseFormData,
+              new Date(userObj[key]).toISOString()
+            );
+            setDate(new Date(userObj[key]));
+          } else {
+            setValue(key as keyof ExpenseFormData, userObj[key]);
+          }
+        }
+      }
+    }
+  }, []);
 
   const onSubmit = (data: ExpenseFormData) => {
-    //editUser(user)
-    //  .then((user) => {
-    //    messageService.success("Success", "Usuario actualizado");
-    //    for (const key in user) {
-    //      setValue(key as keyof ExpenseFormData, user[key]);
-    //    }
-    //  })
-    //  .catch((err) => {
-    //    messageService.error(err);
-    //  });
+    editUser(data as unknown as User)
+      .then((user) => {
+        messageService.success("Success", "Usuario actualizado");
+        for (const key in user) {
+          setValue(key as keyof ExpenseFormData, user[key]);
+        }
+      })
+      .catch((err) => {
+        messageService.error(err);
+      });
     console.log(data);
+  };
+
+  const onDateChange = (newValue: Date) => {
+    console.log(newValue);
+    setDate(new Date(newValue));
+    setValue("birthdate", formattedDate(new Date(newValue)));
+    if (!register("birthdate")) {
+      register("birthdate");
+    }
   };
 
   return (
     <>
+      <VStack justifyContent={"center"} marginBottom="30px" spacing="24px">
+        <Heading as="h1" size="xl">
+          Sistema de Empleados
+        </Heading>
+      </VStack>
       <Card marginTop={0}>
         <CardHeader>
           <Heading size="md">Mi información</Heading>
         </CardHeader>
-        <form
-          onSubmit={handleSubmit((data) => {
-            console.log(data);
-            onSubmit(data);
-            reset();
-          })}
-        >
+        <form>
           <Box
             borderRadius={10}
             borderWidth="2px"
@@ -141,10 +149,7 @@ const InfoView = () => {
                 <SingleDatepicker
                   name="Fecha de Nacimiento"
                   date={date}
-                  onDateChange={(newValue) => {
-                    setDate(newValue);
-                    setValue("birthdate", newValue);
-                  }}
+                  onDateChange={onDateChange}
                 />
               </GridItem>
             </Grid>
@@ -153,15 +158,15 @@ const InfoView = () => {
                 <FormLabel>Nombres</FormLabel>
 
                 <Input
-                  type="text"
+                  type="string"
                   placeholder="Juan"
-                  {...register("names")}
-                  aria-invalid={errors.names ? "true" : "false"}
+                  {...register("nombres")}
+                  aria-invalid={errors.nombres ? "true" : "false"}
                 />
-                {errors.names?.message && (
+                {errors.nombres?.message && (
                   <Alert status="error">
                     <AlertIcon />
-                    <AlertTitle>{errors.names?.message}</AlertTitle>
+                    <AlertTitle>{errors.nombres?.message}</AlertTitle>
                   </Alert>
                 )}
               </GridItem>
@@ -186,7 +191,7 @@ const InfoView = () => {
               <GridItem ms={6}>
                 <FormLabel> Apellidos</FormLabel>
                 <Input
-                  type="text"
+                  type="string"
                   placeholder="Pérez"
                   {...register("lastnames")}
                   aria-invalid={errors.lastnames ? "true" : "false"}
@@ -250,6 +255,7 @@ const InfoView = () => {
             <Grid gap={6} ms={6}>
               <Button
                 type="submit"
+                onClick={handleSubmit(onSubmit)}
                 mt={4}
                 colorScheme="teal"
                 whiteSpace="normal"
