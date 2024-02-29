@@ -8,10 +8,10 @@
 
 ## Screenshots
 
-<img src="./vacunas1.png" width="150px">
-<img src="./vacunas2.png" width="150px">
-<img src="./vacunas3.png" width="150px">
-<img src="./vacunas4.png" width="150px">
+<img src="./vacunas1.png" width="300px">
+<img src="./vacunas2.png" width="3000px">
+<img src="./vacunas3.png" width="300px">
+<img src="./vacunas4.png" width="300px">
 
 ## Creado con:
 
@@ -26,7 +26,8 @@
 - Postgresql
 
 # Diagrama de base
-<img src="./diagrama.png" width="100px>
+
+<img src="./diagrama.png" width="300px">
 
 ## Para iniciar el Front-end
 
