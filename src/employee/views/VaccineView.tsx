@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
-import useUserService from "../../hooks/useUserService";
-import { messageService } from "../../services/messageService";
+import { get, useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -22,11 +20,13 @@ import {
   Select,
 } from "@chakra-ui/react";
 import { SingleDatepicker } from "chakra-dayzed-datepicker";
+import useUserService from "../../hooks/useUserService";
 import { User } from "../../services/useAuthService";
+import { messageService } from "../../services/messageService";
 
 const schema = z.object({
   id: z.string().optional(),
-  isVaccinated: z.boolean().optional(),
+  isVaccinated: z.boolean(),
   vaccineType: z.string().optional(),
   vaccineDate: z.date().optional(),
   doseNumber: z.string().optional(),
@@ -35,6 +35,21 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 export const VaccineView = () => {
+  const { getUser, editUser } = useUserService();
+  const user = JSON.parse(localStorage.getItem("user")) as unknown as User;
+
+  const fetchUserValues = async () => {
+    return await getUser(user.id);
+  };
+
+  const userValues = fetchUserValues() as unknown as User;
+
+  const [userData, setUserData] = useState<User>();
+  const [type, setType] = useState(userData?.vaccineType || "");
+  const [date, setDate] = useState<Date>(userData?.vaccineDate || new Date());
+  const [state, setState] = useState(userData?.isVaccinated || false);
+  const [doseNumber, setDoseNumber] = useState(userData?.doseNumber || "");
+
   const {
     register,
     handleSubmit,
@@ -42,34 +57,49 @@ export const VaccineView = () => {
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
+    defaultValues: {
+      id: userValues.id,
+      isVaccinated: userValues.isVaccinated,
+      vaccineType: userValues.vaccineType,
+      vaccineDate: userValues.vaccineDate,
+      doseNumber: userValues.doseNumber,
+    },
   });
 
-  const [type, setType] = useState("");
-  const [date, setDate] = useState<Date>();
-  const [state, setState] = useState(false);
-
-  const { getUser, editUser } = useUserService();
-
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      const userObj = JSON.parse(storedUser);
-      for (const key in userObj) {
-        const value = [key as keyof FormData];
-        if (value !== null) {
-          setValue(key as keyof FormData, userObj[key]);
+    const loadUserData = async () => {
+      try {
+        const userFromStorage = localStorage.getItem("user");
+        if (userFromStorage) {
+          const fetchedUser = await getUser(JSON.parse(userFromStorage).id);
+          setUserData(fetchedUser);
+          setState(fetchedUser.isVaccinated);
+          setType(fetchedUser.vaccineType);
+          setDate(new Date(fetchedUser.vaccineDate));
+          setDoseNumber(fetchedUser.doseNumber);
         }
+      } catch (error) {
+        console.error("Failed to fetch user data:", error);
       }
-    }
+    };
+
+    loadUserData();
   }, []);
 
+  const storedUser = localStorage.getItem("user");
+
   const onSubmit = (data: FormData) => {
-    editUser(data as unknown as User)
+    const user = data as unknown as User;
+    user.id = JSON.parse(storedUser as string).id;
+    editUser({
+      id: user.id,
+      vaccineDate: date,
+      vaccineType: type,
+      isVaccinated: state,
+      doseNumber: doseNumber,
+    })
       .then((res) => {
         messageService.success("Success", "Información actualizada");
-        for (const key in res) {
-          setValue(key as keyof FormData, res[key]);
-        }
       })
       .catch((error) => {
         messageService.error(error);
@@ -78,61 +108,56 @@ export const VaccineView = () => {
 
   const onDateChange = (newValue: Date) => {
     setDate(newValue);
-    setValue("vaccineDate", newValue);
-    if (!register("vaccineDate")) {
-      register("vaccineDate");
-    }
   };
-
+  if (!userData) {
+    return <div>Loading...</div>;
+  }
   return (
     <Card>
       <CardHeader>
         <Heading size="md">Vacunación</Heading>
       </CardHeader>
-      <form>
+      <form onSubmit={handleSubmit(onSubmit)}>
         <Box
           borderRadius={10}
           borderWidth="2px"
           overflow="hidden"
-          borderColor={"teal"}
+          borderColor="teal"
           padding={10}
         >
-          <Grid>
-            <Grid
-              templateColumns={
-                state === true ? "repeat(2, 1fr)" : "repeat(1, 1fr)"
-              }
-              gap={6}
-            >
-              <GridItem ms={6}>
-                <FormControl
-                  onChange={() => {
-                    setState(!state);
-                  }}
-                >
-                  <FormLabel>¿Está vacunado?</FormLabel>
-                  <Switch checked={state} {...register("isVaccinated")} />
-                </FormControl>
-                {errors.isVaccinated?.message && (
+          <Grid
+            templateColumns={
+              state === true ? "repeat(2, 1fr)" : "repeat(1, 1fr)"
+            }
+            gap={6}
+          >
+            <GridItem>
+              <FormControl>
+                <FormLabel>¿Está vacunado?</FormLabel>
+                <Switch
+                  {...register("isVaccinated")}
+                  onChange={() => setState(!state)}
+                  isChecked={state}
+                />
+                {errors.isVaccinated && (
                   <Alert status="error">
                     <AlertIcon />
-                    <AlertTitle>{errors.isVaccinated?.message}</AlertTitle>
+                    <AlertTitle>Debe indicar si está vacunado o no.</AlertTitle>
                   </Alert>
                 )}
-              </GridItem>
-              {state === true && (
-                <GridItem ms={6}>
+              </FormControl>
+            </GridItem>
+            {state && (
+              <>
+                <GridItem>
                   <FormControl>
                     <FormLabel>Tipo de Vacuna</FormLabel>
                     <Select
                       id="type-select"
                       value={type}
-                      onChange={(
-                        event: React.ChangeEvent<HTMLSelectElement>
-                      ) => {
-                        const selectedValue = event.target.value;
-                        setType(selectedValue);
-                        setValue("vaccineType", selectedValue);
+                      onChange={(event) => {
+                        setType(event.target.value);
+                        register("vaccineType").onChange(event); // Manually trigger the form register's onChange event
                       }}
                     >
                       {[
@@ -140,7 +165,7 @@ export const VaccineView = () => {
                         "Sputnik",
                         "AstraZeneca",
                         "Pfizer",
-                        "Jhonson&Jhonson",
+                        "Johnson&Johnson",
                       ].map((item, index) => (
                         <option key={index} value={item}>
                           {item}
@@ -149,50 +174,29 @@ export const VaccineView = () => {
                     </Select>
                   </FormControl>
                 </GridItem>
-              )}
-            </Grid>
-            {state === true && (
-              <Grid templateColumns="repeat(2, 1fr)" gap={6}>
-                <GridItem ms={6}>
-                  <FormLabel>Fecha de Vacunacion</FormLabel>
-
+                <GridItem>
+                  <FormLabel>Fecha de Vacunación</FormLabel>
                   <SingleDatepicker
-                    name="Fecha de Vacunacion"
+                    name="vaccineDate"
                     date={date}
                     onDateChange={onDateChange}
                   />
                 </GridItem>
-                <GridItem ms={6}>
+                <GridItem>
                   <FormLabel>Número de Dosis</FormLabel>
-
                   <Input
-                    type="string"
-                    placeholder="1724034184"
+                    type="text"
+                    placeholder="Número de dosis"
+                    defaultValue={doseNumber}
                     {...register("doseNumber")}
-                    aria-invalid={errors.doseNumber ? "true" : "false"}
                   />
-                  {errors.doseNumber?.message && (
-                    <Alert status="error">
-                      <AlertIcon />
-                      <AlertTitle>{errors.doseNumber?.message}</AlertTitle>
-                    </Alert>
-                  )}
                 </GridItem>
-              </Grid>
+              </>
             )}
           </Grid>
-          <Grid sx={{ mt: 2 }}>
-            <Button
-              type="submit"
-              mt={4}
-              colorScheme="teal"
-              whiteSpace="normal"
-              textAlign="left"
-              onClick={handleSubmit(onSubmit)}
-            >
-              Guardar
-            </Button>
-          </Grid>
+          <Button type="submit" mt={4} colorScheme="teal">
+            Guardar
+          </Button>
         </Box>
       </form>
     </Card>

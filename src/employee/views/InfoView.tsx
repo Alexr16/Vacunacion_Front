@@ -49,6 +49,41 @@ const schema = z.object({
 type ExpenseFormData = z.infer<typeof schema>;
 
 const InfoView = () => {
+  const { getUser, editUser } = useUserService();
+
+  useEffect(() => {
+    const loadUserData = async () => {
+      try {
+        const userFromStorage = localStorage.getItem("user");
+        if (userFromStorage) {
+          const fetchedUser = await getUser(JSON.parse(userFromStorage).id);
+          setUserData(fetchedUser);
+          setCedula(fetchedUser.cedula);
+          setNombres(fetchedUser.nombres);
+          setLastnames(fetchedUser.lastnames);
+          setEmail(fetchedUser.email);
+          setAddress(fetchedUser.address);
+          setPhone(fetchedUser.phone);
+          setUsername(fetchedUser.username);
+          setDate(new Date(fetchedUser.birthdate));
+        }
+      } catch (error) {
+        console.error("Failed to fetch user data:", error);
+      }
+    };
+
+    loadUserData();
+  }, []);
+  const user = JSON.parse(localStorage.getItem("user")) as unknown as User;
+
+  const fetchUserValues = async () => {
+    return await getUser(user.id);
+  };
+
+  const userValues = fetchUserValues() as unknown as User;
+
+  const [userData, setUserData] = useState<User>();
+
   const {
     register,
     handleSubmit,
@@ -56,58 +91,55 @@ const InfoView = () => {
     formState: { errors },
   } = useForm<ExpenseFormData>({
     resolver: zodResolver(schema),
+    defaultValues: {
+      id: userValues.id,
+      cedula: userValues.cedula,
+      nombres: userValues.nombres,
+      lastnames: userValues.lastnames,
+      email: userValues.email,
+      birthdate: userValues.birthdate,
+      address: userValues.address,
+      phone: userValues.phone,
+      password: userValues.password,
+      username: userValues.username,
+    },
   });
-  const formattedDate = (date: Date) => {
-    const options = { year: "numeric", month: "2-digit", day: "2-digit" };
-    return new Date(date).toLocaleDateString(undefined, options);
-  };
-  const { getUser, editUser } = useUserService();
-  const [date, setDate] = useState(new Date());
 
-  useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      const userObj = JSON.parse(storedUser);
-      for (const key in userObj) {
-        const value = userObj[key as keyof ExpenseFormData];
-        if (value !== null) {
-          if (String(key) === "birthdate") {
-            setValue(
-              key as keyof ExpenseFormData,
-              new Date(userObj[key]).toISOString()
-            );
-            setDate(new Date(userObj[key]));
-          } else {
-            setValue(key as keyof ExpenseFormData, userObj[key]);
-          }
-        }
-      }
-    }
-  }, []);
+  const [date, setDate] = useState(new Date());
+  const [cedula, setCedula] = useState(userValues?.cedula || "");
+  const [nombres, setNombres] = useState(userValues?.nombres || "");
+  const [lastnames, setLastnames] = useState(userValues?.lastnames || "");
+  const [email, setEmail] = useState(userValues?.email || "");
+  const [address, setAddress] = useState(userValues?.address || "");
+  const [phone, setPhone] = useState(userValues?.phone || "");
+  const [username, setUsername] = useState(userValues?.username || "");
+
+  const storedUser = localStorage.getItem("user");
 
   const onSubmit = (data: ExpenseFormData) => {
-    editUser(data as unknown as User)
-      .then((user) => {
-        messageService.success("Success", "Usuario actualizado");
-        for (const key in user) {
-          setValue(key as keyof ExpenseFormData, user[key]);
-        }
+    const user = data as unknown as User;
+    user.id = JSON.parse(storedUser as string).id;
+    editUser(user)
+      .then((res) => {
+        messageService.success("Success", "Información actualizada");
       })
-      .catch((err) => {
-        messageService.error(err);
+      .catch((error) => {
+        messageService.error(error);
       });
-    console.log(data);
   };
 
   const onDateChange = (newValue: Date) => {
     console.log(newValue);
     setDate(new Date(newValue));
-    setValue("birthdate", formattedDate(new Date(newValue)));
+    setValue("birthdate", new Date(newValue).toISOString());
     if (!register("birthdate")) {
       register("birthdate");
     }
   };
 
+  if (!userData) {
+    return <div></div>;
+  }
   return (
     <>
       <VStack justifyContent={"center"} marginBottom="30px" spacing="24px">
@@ -119,7 +151,7 @@ const InfoView = () => {
         <CardHeader>
           <Heading size="md">Mi información</Heading>
         </CardHeader>
-        <form>
+        <form onSubmit={handleSubmit(onSubmit)}>
           <Box
             borderRadius={10}
             borderWidth="2px"
@@ -133,6 +165,7 @@ const InfoView = () => {
 
                 <Input
                   type="string"
+                  defaultValue={cedula}
                   placeholder="1724034184"
                   {...register("cedula")}
                   aria-invalid={errors.cedula ? "true" : "false"}
@@ -147,6 +180,7 @@ const InfoView = () => {
               <GridItem ms={6}>
                 <FormLabel>Fecha de Nacimiento</FormLabel>
                 <SingleDatepicker
+                  {...register("birthdate")}
                   name="Fecha de Nacimiento"
                   date={date}
                   onDateChange={onDateChange}
@@ -159,6 +193,7 @@ const InfoView = () => {
 
                 <Input
                   type="string"
+                  defaultValue={nombres}
                   placeholder="Juan"
                   {...register("nombres")}
                   aria-invalid={errors.nombres ? "true" : "false"}
@@ -175,6 +210,7 @@ const InfoView = () => {
 
                 <Input
                   type="string"
+                  defaultValue={address}
                   placeholder="San José"
                   {...register("address")}
                   aria-invalid={errors.address ? "true" : "false"}
@@ -191,6 +227,7 @@ const InfoView = () => {
               <GridItem ms={6}>
                 <FormLabel> Apellidos</FormLabel>
                 <Input
+                  defaultValue={lastnames}
                   type="string"
                   placeholder="Pérez"
                   {...register("lastnames")}
@@ -207,6 +244,7 @@ const InfoView = () => {
                 <FormLabel>teléfono Celular</FormLabel>
                 <Input
                   type="string"
+                  defaultValue={phone}
                   placeholder="0999999999"
                   {...register("phone")}
                   aria-invalid={errors.phone ? "true" : "false"}
@@ -223,6 +261,7 @@ const InfoView = () => {
               <GridItem ms={6}>
                 <FormLabel>Correo</FormLabel>
                 <Input
+                  defaultValue={email}
                   type="string"
                   placeholder="juan@mail.com"
                   {...register("email")}
@@ -238,6 +277,7 @@ const InfoView = () => {
               <GridItem ms={6}>
                 <FormLabel>Usuario</FormLabel>
                 <Input
+                  defaultValue={username}
                   type="string"
                   placeholder="ban@gmail.com"
                   {...register("username")}
@@ -255,7 +295,6 @@ const InfoView = () => {
             <Grid gap={6} ms={6}>
               <Button
                 type="submit"
-                onClick={handleSubmit(onSubmit)}
                 mt={4}
                 colorScheme="teal"
                 whiteSpace="normal"

@@ -19,7 +19,7 @@ export default function useUserService() {
 
     async function getUser(userId: string) {
         const response = await apiClient.get(`${resourceUrl}/${userId}`);
-        return response.data.data;
+        return response.data;
     }
 
     async function getAllUsers() {
@@ -38,8 +38,8 @@ export default function useUserService() {
         return response.data;
     }
 
-    async function editUser(user: User) {
-        const response = await apiClient.put(`${resourceUrl}/${user.id}`, user);
+    async function editUser(data: any) {
+        const response = await apiClient.patch(`${resourceUrl}/actualizar/${data.id}`, data);
         return response.data;
     }
 

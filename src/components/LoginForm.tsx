@@ -47,7 +47,7 @@ const LoginForm = () => {
       } else if (data !== null && user.role === "employee") {
         navigate("/employee");
       } else {
-        nmessageService.error("Usuario o contraseña incorrectos");
+        messageService.error("Usuario o contraseña incorrectos");
       }
     } catch (error) {
       messageService.error("Usuario o contraseña incorrectos");
