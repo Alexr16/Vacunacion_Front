@@ -8,10 +8,10 @@
 
 ## Screenshots
 
-<img src="./vacunas1.png" width="300px">
-<img src="./vacunas2.png" width="3000px">
-<img src="./vacunas3.png" width="300px">
-<img src="./vacunas4.png" width="300px">
+<img src="./vacunas1.png" width="1000px">
+<img src="./vacunas2.png" width="1000px">
+<img src="./vacunas3.png" width="100px">
+<img src="./vacunas4.png" width="1000px">
 
 ## Creado con:
 
@@ -79,8 +79,7 @@ Give a ⭐️ if you like this project!
 
 ## Acknowledgments
 
-- Thanks to my peers who are always there to offer support. 
-- Original design idea by Nelson Sakwa on Behance.
+- Gracias a Kruguer por la oportunidad
 
 ## 📝 License
 
