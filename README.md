@@ -1,30 +1,87 @@
-# React + TypeScript + Vite
+# Kruguer 
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-Currently, two official plugins are available:
+# Vacunacion App
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+> En este proyecto se ha construido una aplicacion web conectando frond y back usando Spring Boot 3 y React para contestar al Reto Kruguer Inventario de vacunación de empleados.
 
-## Expanding the ESLint configuration
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+## Screenshots
 
-- Configure the top-level `parserOptions` property like this:
+<img src="./vacunas1.png" width="300px">
+<img src="./vacunas2.png" width="3000px">
+<img src="./vacunas3.png" width="300px">
+<img src="./vacunas4.png" width="300px">
 
-```js
-export default {
-  // other rules...
-  parserOptions: {
-    ecmaVersion: 'latest',
-    sourceType: 'module',
-    project: ['./tsconfig.json', './tsconfig.node.json'],
-    tsconfigRootDir: __dirname,
-  },
-}
+## Creado con:
+
+- React
+- TypeScript
+- JavaScript
+- HTML
+- Chrakra
+- Java
+- Spring Boot
+- Zod
+- Postgresql
+
+# Diagrama de base
+
+<img src="./diagrama.png" width="300px">
+
+## Para iniciar el Front-end
+
+Hacer una copia local del repositorio y seguir los siguientes pasos:
+1. Abrir el terminal y navegar al folder de l aaplicacion.
+2. Ingrese los siguientes comandos en el terminal: 
+ ```
+ git clone https://github.com/Alexr16/Vacunacion_Front
+ ```
+ ```
+ cd game-app
+ ```
+ 
+## Run project
+
+```bash
+$ npm install
+$ npm run start # this will make webpack watching for your changes in code
 ```
 
-- Replace `plugin:@typescript-eslint/recommended` to `plugin:@typescript-eslint/recommended-type-checked` or `plugin:@typescript-eslint/strict-type-checked`
-- Optionally add `plugin:@typescript-eslint/stylistic-type-checked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and add `plugin:react/recommended` & `plugin:react/jsx-runtime` to the `extends` list
+## Para iniciar el Back-End
+Revisar
+- Vacunas Back-end [click here](https://github.com/Alexr16/vacunacion_Back).
+
+1. Hacer una copia local del repositorio e ingresar el siguiente comando:
+```
+mvn clean spring-boot:run
+```
+
+
+
+## Author
+
+👤 **George**
+
+- GitHub: [@Alexr16](https://github.com/Alexr16)
+- Twitter: [@ReveloJ](https://twitter.com/ReveloJ)
+- LinkedIn: [Jorge Ríos](https://www.linkedin.com/in/jorgeriosr/)
+
+## 🤝 Contributing
+
+Contributions, issues, and feature requests are welcome!
+
+Feel free to check the [issues page](https://github.com/Alexr16/Vacunacion_Front/issues).
+
+## Show your support
+
+Give a ⭐️ if you like this project!
+
+## Acknowledgments
+
+- Thanks to my peers who are always there to offer support. 
+- Original design idea by Nelson Sakwa on Behance.
+
+## 📝 License
+
+This project is [MIT](./LICENSE) licensed.
