@@ -26,7 +26,6 @@ const namesRegex = /^[a-zA-Z\s]*$/;
 const numbersRegex = /^[0-9]*$/;
 
 const schema = z.object({
-  id: z.string().optional(),
   cedula: z
     .string()
     .min(10)
@@ -42,7 +41,6 @@ const schema = z.object({
   birthdate: z.string().optional(),
   address: z.string().optional(),
   phone: z.string().optional(),
-  password: z.string().optional(),
   username: z.string().optional(),
 });
 
@@ -92,7 +90,6 @@ const InfoView = () => {
   } = useForm<ExpenseFormData>({
     resolver: zodResolver(schema),
     defaultValues: {
-      id: userValues.id,
       cedula: userValues.cedula,
       nombres: userValues.nombres,
       lastnames: userValues.lastnames,
@@ -100,12 +97,13 @@ const InfoView = () => {
       birthdate: userValues.birthdate,
       address: userValues.address,
       phone: userValues.phone,
-      password: userValues.password,
       username: userValues.username,
     },
   });
 
-  const [date, setDate] = useState(new Date());
+  const [date, setDate] = useState(
+    userValues?.birthdate ? new Date(userValues.birthdate) : new Date()
+  );
   const [cedula, setCedula] = useState(userValues?.cedula || "");
   const [nombres, setNombres] = useState(userValues?.nombres || "");
   const [lastnames, setLastnames] = useState(userValues?.lastnames || "");
@@ -114,13 +112,13 @@ const InfoView = () => {
   const [phone, setPhone] = useState(userValues?.phone || "");
   const [username, setUsername] = useState(userValues?.username || "");
 
-  const storedUser = localStorage.getItem("user");
-
   const onSubmit = (data: ExpenseFormData) => {
-    const user = data as unknown as User;
-    user.id = JSON.parse(storedUser as string).id;
-    editUser(user)
+    console.log(data);
+    console.log(userData);
+    const updatedUser = { ...userData, ...data };
+    editUser(updatedUser as unknown as User)
       .then((res) => {
+        localStorage.setItem("user", JSON.stringify(updatedUser));
         messageService.success("Success", "Información actualizada");
       })
       .catch((error) => {
@@ -129,12 +127,8 @@ const InfoView = () => {
   };
 
   const onDateChange = (newValue: Date) => {
-    console.log(newValue);
-    setDate(new Date(newValue));
-    setValue("birthdate", new Date(newValue).toISOString());
-    if (!register("birthdate")) {
-      register("birthdate");
-    }
+    setDate(newValue);
+    setValue("birthdate", newValue.toISOString());
   };
 
   if (!userData) {

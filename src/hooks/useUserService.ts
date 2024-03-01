@@ -38,7 +38,7 @@ export default function useUserService() {
         return response.data;
     }
 
-    async function editUser(data: any) {
+    async function editUser(data: User) {
         const response = await apiClient.patch(`${resourceUrl}/actualizar/${data.id}`, data);
         return response.data;
     }
