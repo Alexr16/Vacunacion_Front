@@ -8,7 +8,7 @@ export interface User {
     cedula: string ;
     nombres: string ;
     lastnames: string ;
-    vaccineDate: Date ;
+    vaccineDate: string ;
     vaccineType: string ;
     password: string ;
     isVaccinated: boolean ;

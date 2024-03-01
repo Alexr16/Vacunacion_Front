@@ -158,18 +158,17 @@ export const EmployeeListView = () => {
                 name="Fecha inicial Vacunación"
                 date={startedDate}
                 onDateChange={(newValue) => {
-                  setStartedDate(newValue);
-                  getUsers(
-                    "",
-                    newValue.toLocaleDateString(),
-                    endedDate.toLocaleDateString()
-                  )
-                    .then((data) => {
-                      setUsers(data);
-                    })
-                    .catch((error) => {
-                      console.log(error);
-                    });
+                  const newStartedDate = new Date(newValue);
+                  setStartedDate(newStartedDate);
+
+                  const filteredUsers = users?.filter((u) => {
+                    const vaccineDate = new Date(u.vaccineDate);
+                    return (
+                      vaccineDate >= newStartedDate && vaccineDate <= endedDate
+                    );
+                  });
+
+                  setUsers(filteredUsers);
                 }}
               />
             </GridItem>
@@ -179,18 +178,17 @@ export const EmployeeListView = () => {
                 name="Fecha final Vacunación"
                 date={endedDate}
                 onDateChange={(newValue) => {
-                  setEndedDate(newValue);
-                  getUsers(
-                    "",
-                    startedDate.toLocaleDateString(),
-                    newValue.toLocaleDateString()
-                  )
-                    .then((data) => {
-                      setUsers(data);
-                    })
-                    .catch((error) => {
-                      console.log(error);
-                    });
+                  const newEndDate = new Date(newValue);
+                  setEndedDate(newEndDate);
+
+                  const filteredUsers = users?.filter((u) => {
+                    const vaccineDate = new Date(u.vaccineDate);
+                    return (
+                      vaccineDate >= startedDate && vaccineDate <= newEndDate
+                    );
+                  });
+
+                  setUsers(filteredUsers);
                 }}
               />
             </GridItem>
@@ -226,7 +224,7 @@ export const EmployeeListView = () => {
                   <Td align="right">{row.lastnames}</Td>
                   <Td align="right">{row.email}</Td>
                   <Td align="right">
-                    {row.vaccineDate ? row.vaccineDate : "No Aplica"}
+                    {row.vaccineDate ? row.vaccineDate.toString() : "No Aplica"}
                   </Td>
                   <Td align="right">
                     {row.vaccineType ? row.vaccineType : "No Aplica"}

@@ -98,8 +98,9 @@ const EmployeeForm = ({
   }, [employee]);
 
   const onSubmit = (data: ExpenseFormData) => {
+    const updatedUser = { ...employee, ...data };
     if (employee?.id) {
-      editUser(data as unknown as User)
+      editUser(updatedUser as unknown as User)
         .then((response) => {
           handleClose();
           setUsers(users.map((u) => (u.id === response.id ? response : u)));

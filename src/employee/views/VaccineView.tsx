@@ -16,6 +16,7 @@ import {
   Box,
   Card,
   CardHeader,
+  Spinner,
   GridItem,
   Select,
 } from "@chakra-ui/react";
@@ -23,12 +24,12 @@ import { SingleDatepicker } from "chakra-dayzed-datepicker";
 import useUserService from "../../hooks/useUserService";
 import { User } from "../../services/useAuthService";
 import { messageService } from "../../services/messageService";
+import { set } from "date-fns";
 
 const schema = z.object({
-  id: z.string().optional(),
   isVaccinated: z.boolean(),
   vaccineType: z.string().optional(),
-  vaccineDate: z.date().optional(),
+  vaccineDate: z.string().optional(),
   doseNumber: z.string().optional(),
 });
 
@@ -46,7 +47,9 @@ export const VaccineView = () => {
 
   const [userData, setUserData] = useState<User>();
   const [type, setType] = useState(userData?.vaccineType || "");
-  const [date, setDate] = useState<Date>(userData?.vaccineDate || new Date());
+  const [date, setDate] = useState(
+    userData?.vaccineDate ? new Date(userData.vaccineDate) : new Date()
+  );
   const [state, setState] = useState(userData?.isVaccinated || false);
   const [doseNumber, setDoseNumber] = useState(userData?.doseNumber || "");
 
@@ -58,7 +61,6 @@ export const VaccineView = () => {
   } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: {
-      id: userValues.id,
       isVaccinated: userValues.isVaccinated,
       vaccineType: userValues.vaccineType,
       vaccineDate: userValues.vaccineDate,
@@ -70,12 +72,12 @@ export const VaccineView = () => {
     const loadUserData = async () => {
       try {
         const userFromStorage = localStorage.getItem("user");
-        if (userFromStorage) {
+        if (userFromStorage && !userData) {
           const fetchedUser = await getUser(JSON.parse(userFromStorage).id);
           setUserData(fetchedUser);
-          setState(fetchedUser.isVaccinated);
           setType(fetchedUser.vaccineType);
           setDate(new Date(fetchedUser.vaccineDate));
+          setState(fetchedUser.isVaccinated);
           setDoseNumber(fetchedUser.doseNumber);
         }
       } catch (error) {
@@ -86,19 +88,12 @@ export const VaccineView = () => {
     loadUserData();
   }, []);
 
-  const storedUser = localStorage.getItem("user");
-
   const onSubmit = (data: FormData) => {
-    const user = data as unknown as User;
-    user.id = JSON.parse(storedUser as string).id;
-    editUser({
-      id: user.id,
-      vaccineDate: date,
-      vaccineType: type,
-      isVaccinated: state,
-      doseNumber: doseNumber,
-    })
+    const updatedUser = { ...userData, ...data };
+
+    editUser(updatedUser as unknown as User)
       .then((res) => {
+        localStorage.setItem("user", JSON.stringify(updatedUser));
         messageService.success("Success", "Información actualizada");
       })
       .catch((error) => {
@@ -108,9 +103,10 @@ export const VaccineView = () => {
 
   const onDateChange = (newValue: Date) => {
     setDate(newValue);
+    setValue("vaccineDate", newValue.toISOString());
   };
   if (!userData) {
-    return <div>Loading...</div>;
+    return <Spinner />;
   }
   return (
     <Card>
@@ -155,9 +151,9 @@ export const VaccineView = () => {
                     <Select
                       id="type-select"
                       value={type}
+                      {...register("vaccineType")}
                       onChange={(event) => {
                         setType(event.target.value);
-                        register("vaccineType").onChange(event); // Manually trigger the form register's onChange event
                       }}
                     >
                       {[
@@ -185,10 +181,10 @@ export const VaccineView = () => {
                 <GridItem>
                   <FormLabel>Número de Dosis</FormLabel>
                   <Input
+                    {...register("doseNumber")}
                     type="text"
                     placeholder="Número de dosis"
                     defaultValue={doseNumber}
-                    {...register("doseNumber")}
                   />
                 </GridItem>
               </>
