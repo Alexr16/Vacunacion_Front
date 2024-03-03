@@ -38,7 +38,7 @@ Hacer una copia local del repositorio y seguir los siguientes pasos:
  git clone https://github.com/Alexr16/Vacunacion_Front
  ```
  ```
- cd game-app
+ cd Vacunacion_Front
  ```
  
 ## Run project
