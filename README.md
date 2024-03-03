@@ -10,7 +10,7 @@
 
 <img src="./vacunas1.png" width="1000px">
 <img src="./vacunas2.png" width="1000px">
-<img src="./vacunas3.png" width="100px">
+<img src="./vacunas3.png" width="1000px">
 <img src="./vacunas4.png" width="1000px">
 
 ## Creado con:
