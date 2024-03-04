@@ -4,6 +4,9 @@
 # Vacunacion App
 
 > En este proyecto se ha construido una aplicacion web conectando frond y back usando Spring Boot 3 y React para contestar al Reto Kruguer Inventario de vacunación de empleados.
+> En esta aplicacion se tiene un role de administrador y empleado.
+> Un administrador puede crear, editar y eliminar empleados.
+> Un empleado puede editar su información.
 
 
 ## Screenshots
