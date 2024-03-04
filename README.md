@@ -45,19 +45,12 @@ Hacer una copia local del repositorio y seguir los siguientes pasos:
 
 ```bash
 $ npm install
-$ npm run start # this will make webpack watching for your changes in code
+$ npm run dev
 ```
 
 ## Para iniciar el Back-End
 Revisar
 - Vacunas Back-end [click here](https://github.com/Alexr16/vacunacion_Back).
-
-1. Hacer una copia local del repositorio e ingresar el siguiente comando:
-```
-mvn clean spring-boot:run
-```
-
-
 
 ## Author
 
