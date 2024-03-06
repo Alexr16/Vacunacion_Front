@@ -46,12 +46,14 @@ export const VaccineView = () => {
   const userValues = fetchUserValues() as unknown as User;
 
   const [userData, setUserData] = useState<User>();
-  const [type, setType] = useState(userData?.vaccineType || "");
+  const [type, setType] = useState(userValues?.vaccineType || "");
+  const [doseNumber, setDoseNumber] = useState(userValues?.doseNumber || "");
   const [date, setDate] = useState(
-    userData?.vaccineDate ? new Date(userData.vaccineDate) : new Date()
+    userValues?.vaccineDate ? new Date(userValues.vaccineDate) : new Date()
   );
-  const [state, setState] = useState(userData?.isVaccinated || false);
-  const [doseNumber, setDoseNumber] = useState(userData?.doseNumber || "");
+  const [state, setState] = useState(
+    doseNumber ? true : userValues?.isVaccinated
+  );
 
   const {
     register,
@@ -76,9 +78,9 @@ export const VaccineView = () => {
           const fetchedUser = await getUser(JSON.parse(userFromStorage).id);
           setUserData(fetchedUser);
           setType(fetchedUser.vaccineType);
-          setDate(new Date(fetchedUser.vaccineDate));
-          setState(fetchedUser.isVaccinated);
           setDoseNumber(fetchedUser.doseNumber);
+          setDate(new Date(fetchedUser.vaccineDate));
+          setState(fetchedUser.doseNumber ? true : fetchedUser.isVaccinated);
         }
       } catch (error) {
         console.error("Failed to fetch user data:", error);
@@ -90,6 +92,8 @@ export const VaccineView = () => {
 
   const onSubmit = (data: FormData) => {
     const updatedUser = { ...userData, ...data };
+    console.log(data);
+    console.log(updatedUser);
 
     editUser(updatedUser as unknown as User)
       .then((res) => {

@@ -14,7 +14,7 @@ export default function useUserService() {
             }
         });
 
-        return response.data.data;
+        return response.data;
     }
 
     async function getUser(userId: string) {

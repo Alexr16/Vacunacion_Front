@@ -24,6 +24,7 @@ import {
 } from "@chakra-ui/react";
 import { SingleDatepicker } from "chakra-dayzed-datepicker";
 import { SmallCloseIcon, EditIcon } from "@chakra-ui/icons";
+import { all } from "axios";
 
 interface Config {
   data: ["Vacunado", "No vacunado"];
@@ -70,11 +71,11 @@ const SelectFilter = (config: Config) => {
 
 export const EmployeeListView = () => {
   const { getUsers, deleteUser, getAllUsers } = useUserService();
+  const [allUsers, setAllUsers] = useState<User[]>();
   const [users, setUsers] = useState<User[]>();
   const [loading, setLoading] = useState(false);
   const [selectedRow, setSelectedRow] = useState();
   const [open, setOpen] = useState(false);
-
   const [startedDate, setStartedDate] = useState(new Date());
   const [endedDate, setEndedDate] = useState(new Date());
   const [state, setState] = useState("");
@@ -83,6 +84,7 @@ export const EmployeeListView = () => {
   useEffect(() => {
     async function fetchData() {
       setUsers(await getAllUsers());
+      setAllUsers(await getAllUsers());
     }
     fetchData();
   }, []);
@@ -158,10 +160,14 @@ export const EmployeeListView = () => {
                 name="Fecha inicial Vacunación"
                 date={startedDate}
                 onDateChange={(newValue) => {
+                  if (!users || users.length === 0) setUsers(allUsers);
+
+                  setAllUsers(allUsers);
+
                   const newStartedDate = new Date(newValue);
                   setStartedDate(newStartedDate);
 
-                  const filteredUsers = users?.filter((u) => {
+                  const filteredUsers = allUsers?.filter((u) => {
                     const vaccineDate = new Date(u.vaccineDate);
                     return (
                       vaccineDate >= newStartedDate && vaccineDate <= endedDate
@@ -178,10 +184,14 @@ export const EmployeeListView = () => {
                 name="Fecha final Vacunación"
                 date={endedDate}
                 onDateChange={(newValue) => {
+                  if (!users || users.length === 0) setUsers(allUsers);
+
+                  setAllUsers(allUsers);
+
                   const newEndDate = new Date(newValue);
                   setEndedDate(newEndDate);
 
-                  const filteredUsers = users?.filter((u) => {
+                  const filteredUsers = allUsers?.filter((u) => {
                     const vaccineDate = new Date(u.vaccineDate);
                     return (
                       vaccineDate >= startedDate && vaccineDate <= newEndDate

@@ -104,7 +104,7 @@ const EmployeeForm = ({
         .then((response) => {
           handleClose();
           setUsers(users.map((u) => (u.id === response.id ? response : u)));
-          messageService.success("Success", "Usuario actualizado con éxito");
+          messageService.success("Success", "Usuario actualizado con éxito.");
         })
         .catch((err) => {
           messageService.error(err);
@@ -125,7 +125,10 @@ const EmployeeForm = ({
       console.log(data);
       storeUser(data as unknown as User)
         .then((response) => {
-          messageService.success("Success", "Usuario creado con éxito");
+          messageService.success(
+            "Success",
+            `Usuario creado con éxito. New username: ${response.username}, New password: ${response.password}`
+          );
           handleClose();
           setUsers([...users, response]);
         })
