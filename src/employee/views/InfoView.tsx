@@ -113,8 +113,6 @@ const InfoView = () => {
   const [username, setUsername] = useState(userValues?.username || "");
 
   const onSubmit = (data: ExpenseFormData) => {
-    console.log(data);
-    console.log(userData);
     const updatedUser = { ...userData, ...data };
     editUser(updatedUser as unknown as User)
       .then((res) => {
@@ -132,7 +130,7 @@ const InfoView = () => {
   };
 
   if (!userData) {
-    return <div></div>;
+    return null;
   }
   return (
     <>
